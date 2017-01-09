@@ -2,9 +2,9 @@
 using System.Collections;
 using InControl;
 
-public class CapsuleController : MonoBehaviour
-{
+public class CapsuleController : MonoBehaviour {
 
+    private int deviceId = 0;
     public float moveSpeed = 6f;
     public float rotationSpeed = 80f;
 
@@ -12,25 +12,16 @@ public class CapsuleController : MonoBehaviour
     private Vector3 movement;
     private Vector3 rotation;
 
-    void Awake ()
-    {
+    InputDevice controller;
+
+    float speed;
+
+    void Awake() {
         playerRigidbody = GetComponent<Rigidbody>();
+        speed = moveSpeed;
     }
 
-	void Start ()
-	{
-
-	}
-	
-	void Update ()
-	{
-        
-    }
-
-    void FixedUpdate ()
-    {
-        InputDevice controller = InputManager.ActiveDevice;
-
+    void FixedUpdate() {
         float leftHorizontal = controller.LeftStickX;
         float leftVertical = controller.LeftStickY;
 
@@ -38,11 +29,24 @@ public class CapsuleController : MonoBehaviour
         float rightVertical = controller.RightStickY;
 
         Move(leftHorizontal, leftVertical);
-        if(rightHorizontal != 0f && rightVertical != 0) Rotate(rightHorizontal, rightVertical);
+        if ( Mathf.Abs(rightHorizontal) >= 0.05f || Mathf.Abs(rightVertical)  >= 0.05f ) Rotate(rightHorizontal, rightVertical);
     }
 
-    void Move(float h, float v)
-    {
+    public void SetMovementSpeed (float slowFactorInPercent) {
+        moveSpeed = speed - (speed*(slowFactorInPercent/100));
+        controller = InputManager.Devices[deviceId];
+    }
+
+    public void SetupControllerDevice(int id) {
+        deviceId = id;
+        controller = InputManager.Devices[deviceId];
+    }
+
+    public InputDevice GetControllerDevice() {
+        return controller;
+    }
+
+    void Move(float h, float v) {
         movement.Set(h, 0f, v);
 
         movement = movement.normalized * moveSpeed * Time.deltaTime;
@@ -50,8 +54,7 @@ public class CapsuleController : MonoBehaviour
         playerRigidbody.MovePosition(transform.position + movement);
     }
 
-    void Rotate(float h, float v)
-    {
+    void Rotate(float h, float v) {
         rotation.Set(h, 0f, v);
 
         Quaternion newRotation = Quaternion.LookRotation(rotation);

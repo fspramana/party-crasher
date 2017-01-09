@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Camera))]
 public class CameraFollow : MonoBehaviour {
@@ -19,7 +19,8 @@ public class CameraFollow : MonoBehaviour {
     public float cameraZoomSmoothTime = 2f;
     public float cameraFrustumHeightLimit = 8;
 
-    public CameraBoundObject[] bounds;
+    [HideInInspector]
+    public List<CameraBoundObject> bounds = new List<CameraBoundObject>();
 
     float smoothX, smoothY, smoothZ;
 
@@ -43,11 +44,18 @@ public class CameraFollow : MonoBehaviour {
     }
 
     void LateUpdate() {
+        if ( bounds.Count == 0 ) return;
 
-        focusArea.Update(bounds, height);
-        cameraViewBound.Update(focusArea, cameraFrustumHeightLimit, cam.aspect);
+        Vector3 focusPoint;
 
-        Vector3 focusPoint = focusArea.center;
+        if ( bounds.Count == 1 ) {
+            focusPoint = new Vector3(bounds[0].transform.position.x, height, bounds[0].transform.position.z);
+        } else {
+            focusArea.Update(bounds, height);
+            cameraViewBound.Update(focusArea, cameraFrustumHeightLimit, cam.aspect);
+
+            focusPoint = focusArea.center;
+        }
 
         float distanceHeight = (cameraViewBound.top-cameraViewBound.bottom) * 0.5f / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
         float distanceWidth = (cameraViewBound.right-cameraViewBound.left) * 0.5f / (Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) * cam.aspect);
@@ -55,7 +63,7 @@ public class CameraFollow : MonoBehaviour {
 
         focusPoint.x = Mathf.SmoothDamp(transform.position.x, focusPoint.x, ref smoothX, cameraMoveSmoothTime);
         focusPoint.z = Mathf.SmoothDamp(transform.position.z, focusPoint.z, ref smoothZ, cameraMoveSmoothTime);
-        focusPoint.y = Mathf.SmoothDamp(transform.position.y, distance, ref smoothY, cameraZoomSmoothTime);
+        focusPoint.y = Mathf.SmoothDamp(transform.position.y, (bounds.Count == 1) ? cameraFrustumHeightLimit : distance, ref smoothY, cameraZoomSmoothTime);
 
 
         transform.position = focusPoint;
@@ -76,8 +84,8 @@ public class CameraFollow : MonoBehaviour {
         }
 
         // Update boundary
-        public void Update(CameraBoundObject[] bounds, float d) {
-            for ( int i = 0; i < bounds.Length; i++ ) {
+        public void Update(List<CameraBoundObject> bounds, float d) {
+            for ( int i = 0; i < bounds.Count; i++ ) {
                 if ( i == 0 ) {
                     left = bounds[i].getBound.left;
                     right = bounds[i].getBound.right;
@@ -152,7 +160,7 @@ public class CameraFollow : MonoBehaviour {
                 right = focusArea.right;
                 left = focusArea.left;
             }
-            
+
         }
     };
 }

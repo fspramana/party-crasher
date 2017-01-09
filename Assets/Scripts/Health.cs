@@ -11,6 +11,11 @@ public class Health : MonoBehaviour {
         Reset();
     }
 
+    public void Heal(int healAmount) {
+        hitPoint += healAmount;
+        hitPoint = Mathf.Clamp(hitPoint, 0, maxHitPoint);
+    }
+
     public void Damage(int damage) {
         hitPoint -= damage;
         if ( hitPoint <= 0 ) {
