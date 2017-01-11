@@ -19,6 +19,11 @@ public class GameManager : MonoBehaviour {
     public GameObject[] items;
     public Transform spawnContainer;
 
+    public List<GameObject> playerRemain;
+
+    public GameEndShower GameEndShower;
+    public GameMenuContainer GameMenuContainer;
+
     void Awake() {
         // iam the only one b*tch
         if ( singleton == null ) {
@@ -33,6 +38,8 @@ public class GameManager : MonoBehaviour {
         itemsSpawnPos = GameObject.FindGameObjectsWithTag("ItemsSpawnPos");
 
         InvokeRepeating("SpawnItem", itemSpawnDelayInSeconds, itemSpawnDelayInSeconds);
+
+        playerRemain = new List<GameObject>();
     }
 
     void SpawnItem() {
@@ -50,7 +57,7 @@ public class GameManager : MonoBehaviour {
         }
 
         for ( int i = 0; i < itemPerSpawn; i++ ) {
-            GameObject instantiate = Instantiate(items[Random.Range(0, items.Length)], itemsSpawnPos[GetAvaiableSpawnIndex(ref avaiableSpawnPos)].transform.position, Quaternion.identity) as GameObject;
+            GameObject instantiate = Instantiate(items[Random.Range(0, items.Length)], itemsSpawnPos[GetAvaiableSpawnIndex(ref avaiableSpawnPos)].transform.position, Quaternion.Euler(0f, 0f, 270f)) as GameObject;
             spawns.Add(instantiate);
             if (spawnContainer) instantiate.transform.SetParent(spawnContainer);
         }
@@ -64,4 +71,13 @@ public class GameManager : MonoBehaviour {
         return spawnPosIndex;
     }
 
+    void Update()
+    {
+        if(playerRemain.Count == 1)
+        {
+            GameMenuContainer.ShowGameEndContainer();
+            int whoWin = int.Parse(playerRemain[0].name.Split(' ')[1]);
+            GameEndShower.PlayerWin(whoWin);
+        }
+    }
 }

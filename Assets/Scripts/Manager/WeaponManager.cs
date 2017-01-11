@@ -8,6 +8,8 @@ public class WeaponManager : MonoBehaviour {
 
     public Weapon[] weapons;
 
+    public AudioSource WeaponSound;
+
     void Start() {
         ActiveWeapon(0);
     }
@@ -33,6 +35,11 @@ public class WeaponManager : MonoBehaviour {
         if ( !found ) {
             Debug.LogError("Weapon with id = "+id+" did not found.");
         }
+    }
+
+    public void PlaySound(AudioClip audioClip)
+    {
+        WeaponSound.PlayOneShot(audioClip);
     }
 
 }

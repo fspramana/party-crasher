@@ -4,7 +4,7 @@ using InControl;
 
 public class CapsuleController : MonoBehaviour {
 
-    private int deviceId = 0;
+    public int deviceId = 0;
     public float moveSpeed = 6f;
     public float rotationSpeed = 80f;
 
@@ -16,20 +16,33 @@ public class CapsuleController : MonoBehaviour {
 
     float speed;
 
+    private Animator _animator;
+    private Health _health;
+
+    private bool isMoving;
+
     void Awake() {
         playerRigidbody = GetComponent<Rigidbody>();
         speed = moveSpeed;
+        _animator = GetComponent<Animator>();
+        _health = GetComponent<Health>();
+    }
+
+    void Start()
+    {
+        controller = InputManager.Devices[deviceId];
     }
 
     void FixedUpdate() {
+
         float leftHorizontal = controller.LeftStickX;
         float leftVertical = controller.LeftStickY;
 
         float rightHorizontal = controller.RightStickX;
         float rightVertical = controller.RightStickY;
 
-        Move(leftHorizontal, leftVertical);
-        if ( Mathf.Abs(rightHorizontal) >= 0.05f || Mathf.Abs(rightVertical)  >= 0.05f ) Rotate(rightHorizontal, rightVertical);
+        if(_health && _health.IsLiving()) Move(leftHorizontal, leftVertical);
+        if (_health && _health.IsLiving()) if ( Mathf.Abs(rightHorizontal) >= 0.05f || Mathf.Abs(rightVertical)  >= 0.05f ) Rotate(rightHorizontal, rightVertical);
     }
 
     public void SetMovementSpeed (float slowFactorInPercent) {
@@ -48,6 +61,8 @@ public class CapsuleController : MonoBehaviour {
 
     void Move(float h, float v) {
         movement.Set(h, 0f, v);
+        isMoving = Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f;
+        _animator.SetBool("Walking", isMoving);
 
         movement = movement.normalized * moveSpeed * Time.deltaTime;
 

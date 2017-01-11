@@ -26,9 +26,12 @@ public class Weapon : MonoBehaviour {
     public LayerMask layerMask;
 
     public Transform  bulletSpawnPos;
+    public Transform traceSpawnPos;
 
     public GameObject traceEffectPrefab;
-     
+
+    public AudioClip audioClip;
+
     [HideInInspector]
     public bool fire = false;
 
@@ -43,9 +46,15 @@ public class Weapon : MonoBehaviour {
     bool semiFire = false;
 
     int i;
+
+    public int BulletLeft
+    {
+        get { return bullet; }
+    }
+
     void Awake() {
         transform = GetComponent<Transform>();
-        controller = transform.parent.GetComponent<CapsuleController>();
+        controller = gameObject.GetComponentInParent<CapsuleController>();
     }
 
     void OnEnable() {
@@ -55,7 +64,7 @@ public class Weapon : MonoBehaviour {
 
     void Start() {
         device = controller.GetControllerDevice();
-        manager = transform.parent.GetComponent<WeaponManager>();
+        manager = gameObject.GetComponentInParent<WeaponManager>();
     }
 
     void Update() {
@@ -90,6 +99,9 @@ public class Weapon : MonoBehaviour {
             for ( i = 0; i < projectilePerShot; i++) {
                 Fire();
             }
+
+            manager.PlaySound(audioClip);
+
             if (bullet > 0 ) {
                 bullet--;
             }
@@ -115,11 +127,11 @@ public class Weapon : MonoBehaviour {
         obj.SetActive(true);
 
         TraceEffect traceEffect = obj.GetComponent<TraceEffect>();
-        traceEffect.SetStartPos(bulletSpawnPos.position);
+        traceEffect.SetStartPos(traceSpawnPos.position);
         if ( Physics.Raycast(bulletSpawnPos.position, direction, out hit, maxDistance, layerMask) )  {
 
             if ( hit.collider.CompareTag("Player") ) {
-                hit.collider.GetComponent<Health>().Damage(damagePerShot);
+                if(hit.collider.GetComponent<Health>().IsLiving()) hit.collider.GetComponent<Health>().Damage(damagePerShot);
             }
 
             traceEffect.SetEndPos(hit.point);
